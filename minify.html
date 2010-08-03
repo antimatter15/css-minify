@@ -1,0 +1,60 @@
+<script>
+//http://www.martienus.com/code/javascript-remove-duplicates-from-array.html
+function unique(a)
+{
+   var r = new Array();
+   o:for(var i = 0, n = a.length; i < n; i++) {
+      for(var x = i + 1 ; x < n; x++)
+      {
+         if(a[x]==a[i]) continue o;
+      }
+      r[r.length] = a[i];
+   }
+   return r;
+}
+
+  setInterval(function(){
+    var src = document.getElementById('in').value;
+    var out = '';
+    if(src.indexOf('/*') != -1) out += '/*As weird as it sounds, you should run your css through another minifier first. This one doesnt strip comments. */\n\n';
+    
+    
+    var allrules = {};
+    
+    src.replace(/([^\{\}]+)\{([^}]*)\}/g, function(all, selector, body){
+      var selectors = selector.split(',').map(function(e){return e.trim()})
+      
+      body.split(';').forEach(function(e){
+        var rule = e.replace(/\s*:\s*/g, ':').trim().replace(/\:0px/g,':0'); //not sure it belongs here
+        if(rule){
+          if(!allrules[rule]) allrules[rule] = [];
+          allrules[rule] = allrules[rule].concat(selectors);
+        }
+      });
+      
+      return all
+    })
+    
+    console.log(allrules)
+    
+    var allselectors = {};
+    
+    for(var rule in allrules){
+      var sel = unique(allrules[rule]).sort().join(',');
+      if(!allselectors[sel]) allselectors[sel] = [];
+      allselectors[sel].push(rule)
+      
+      //out += allrules[rule].join(', ')+'{\n  '+rule+'\n}\n\n'
+    }
+    
+    for(var selector in allselectors){
+      out += selector + '{\n  '+unique(allselectors[selector]).join(';\n  ')+'\n}\n\n'
+    }
+    
+    var olen = src.replace(/\s/g,'').length, nlen = out.replace(/\s/g,'').length;
+    out = '/* Approximate output size: '+nlen + '/' +olen +' ('+(nlen/olen)+'%) */\n\n' + out
+    document.getElementById('out').value = out;
+  },1000);
+</script>
+<textarea id="in" style="width:50%;height:100%;position:absolute;border:0;left:0;top:0;margin:0;padding:0"></textarea>
+<textarea id="out" style="width:50%;height:100%;position:absolute;border:0;right:0;top:0;margin:0;padding:0;background-color:#dddddd" readonly></textarea>
